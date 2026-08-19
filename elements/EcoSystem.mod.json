@@ -1,0 +1,10 @@
+{
+  "_fv": 85,
+  "_type": "command",
+  "definition": {
+    "commandName": "$",
+    "type": "STANDARD",
+    "permissionLevel": "No requirement",
+    "argsxml": "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"args_start\" deletable=\"false\" x=\"218\" y=\"20\"><next><block type=\"literal\"><field name=\"name\">transfer</field><statement name=\"args\"><block type=\"entity\"><field name=\"name\">name</field><field name=\"type\">player</field><statement name=\"args\"><block type=\"number_min\"><field name=\"name\">moneyWantTransfer</field><field name=\"min\">0</field><statement name=\"args\"><block type=\"call_procedure\"><field name=\"procedure\">TransferSystem</field></block></statement></block></statement></block></statement></block></next></block></xml>"
+  }
+}

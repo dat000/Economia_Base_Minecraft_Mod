@@ -1,0 +1,281 @@
+{
+  "mod_elements": [
+    {
+      "name": "MoneyOverlay",
+      "type": "overlay",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "money_overlay",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/economia/client/screens/MoneyOverlayOverlay.java"
+        ]
+      },
+      "path": "~/overlay"
+    },
+    {
+      "name": "MoneyOverlayScript",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "money_overlay_script",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "entity",
+            "type": "entity"
+          }
+        ],
+        "return_type": "string",
+        "files": [
+          "src/main/java/net/mcreator/economia/procedures/MoneyOverlayScriptProcedure.java"
+        ]
+      },
+      "path": "~/overlay"
+    },
+    {
+      "name": "EcoSystem",
+      "type": "command",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "eco_system",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/economia/command/EcoSystemCommand.java"
+        ]
+      },
+      "path": "~/commands"
+    },
+    {
+      "name": "TransferSystem",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "transfer_system",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "arguments",
+            "type": "cmdcontext"
+          },
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ],
+        "files": [
+          "src/main/java/net/mcreator/economia/procedures/TransferSystemProcedure.java"
+        ]
+      },
+      "path": "~/commands"
+    },
+    {
+      "name": "MoneyTestGET",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "money_get",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "arguments",
+            "type": "cmdcontext"
+          },
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ],
+        "files": [
+          "src/main/java/net/mcreator/economia/procedures/MoneyTestGETProcedure.java"
+        ]
+      },
+      "path": "~/commands"
+    },
+    {
+      "name": "AdminEcoSystem",
+      "type": "command",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "admin_eco_system",
+      "metadata": {
+        "files": [
+          "src/main/java/net/mcreator/economia/command/AdminEcoSystemCommand.java"
+        ]
+      },
+      "path": "~/commands"
+    },
+    {
+      "name": "MoneyRmv",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "money_rmv",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "arguments",
+            "type": "cmdcontext"
+          },
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ],
+        "return_type": "logic",
+        "files": [
+          "src/main/java/net/mcreator/economia/procedures/MoneyRmvProcedure.java"
+        ]
+      },
+      "path": "~/commands"
+    },
+    {
+      "name": "MoneySET",
+      "type": "procedure",
+      "compiles": true,
+      "locked_code": false,
+      "registry_name": "money_set",
+      "metadata": {
+        "dependencies": [
+          {
+            "name": "arguments",
+            "type": "cmdcontext"
+          },
+          {
+            "name": "entity",
+            "type": "entity"
+          },
+          {
+            "name": "x",
+            "type": "number"
+          },
+          {
+            "name": "y",
+            "type": "number"
+          },
+          {
+            "name": "z",
+            "type": "number"
+          },
+          {
+            "name": "world",
+            "type": "world"
+          }
+        ],
+        "files": [
+          "src/main/java/net/mcreator/economia/procedures/MoneySETProcedure.java"
+        ]
+      },
+      "path": "~/commands"
+    }
+  ],
+  "variable_elements": [
+    {
+      "name": "money",
+      "type": "number",
+      "scope": "player_persistent",
+      "value": "100.0"
+    }
+  ],
+  "sound_elements": [],
+  "tag_elements": {},
+  "tab_element_order": {},
+  "language_map": {
+    "en_us": {
+      "gui.economia.money_overlay.label_money": "Money: ",
+      "gui.economia.shop_gui.label_quantity": "Quantity"
+    },
+    "es_ar": {
+      "gui.economia.money_overlay.label_money": "Plata: ",
+      "gui.economia.shop_gui.label_quantity": "Quantity"
+    }
+  },
+  "metadata": {
+    "files": [
+      "src/main/java/net/mcreator/economia/network/EconomiaModVariables.java",
+      "src/main/resources/META-INF/neoforge.mods.toml",
+      "src/main/java/net/mcreator/economia/EconomiaMod.java",
+      "src/main/resources/pack.mcmeta"
+    ]
+  },
+  "foldersRoot": {
+    "name": "~",
+    "children": [
+      {
+        "name": "commands",
+        "children": []
+      },
+      {
+        "name": "overlay",
+        "children": []
+      }
+    ]
+  },
+  "workspaceSettings": {
+    "modid": "economia",
+    "modName": "Economia",
+    "version": "1.0.0",
+    "description": "**Economia** is a simple Minecraft mod that adds a basic economy system. Every player has a money balance that can be managed through player-to-player transfers and admin commands, including giving, removing, and setting balances, making it easy to integrate into any server or gameplay experience. ",
+    "author": "devdat",
+    "websiteURL": "https://mcreator.net",
+    "license": "All Rights Reserved",
+    "serverSideOnly": false,
+    "modPicture": "logotip",
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "mcreatorDependencies": [],
+    "currentGenerator": "forge-1.20.1",
+    "credits": "devdat, mcreator",
+    "modElementsPackage": "net.mcreator.economia"
+  },
+  "mcreatorVersion": 202600114619
+}

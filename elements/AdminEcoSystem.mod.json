@@ -1,0 +1,10 @@
+{
+  "_fv": 85,
+  "_type": "command",
+  "definition": {
+    "commandName": "$admin",
+    "type": "STANDARD",
+    "permissionLevel": "3",
+    "argsxml": "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"args_start\" deletable=\"false\" x=\"218\" y=\"20\"><next><block type=\"literal\"><field name=\"name\">get</field><statement name=\"args\"><block type=\"entity\"><field name=\"name\">name</field><field name=\"type\">player</field><statement name=\"args\"><block type=\"number_min\"><field name=\"name\">moneyGet</field><field name=\"min\">0</field><statement name=\"args\"><block type=\"call_procedure\"><field name=\"procedure\">MoneyTestGET</field></block></statement></block></statement></block></statement><next><block type=\"literal\"><field name=\"name\">rmv</field><statement name=\"args\"><block type=\"entity\"><field name=\"name\">name</field><field name=\"type\">player</field><statement name=\"args\"><block type=\"number_min\"><field name=\"name\">moneyRmv</field><field name=\"min\">0</field><statement name=\"args\"><block type=\"call_procedure\"><field name=\"procedure\">MoneyRmv</field></block></statement></block></statement></block></statement><next><block type=\"literal\"><field name=\"name\">set</field><statement name=\"args\"><block type=\"entity\"><field name=\"name\">name</field><field name=\"type\">player</field><statement name=\"args\"><block type=\"number_min\"><field name=\"name\">moneySet</field><field name=\"min\">0</field><statement name=\"args\"><block type=\"call_procedure\"><field name=\"procedure\">MoneySET</field></block></statement></block></statement></block></statement></block></next></block></next></block></next></block></xml>"
+  }
+}

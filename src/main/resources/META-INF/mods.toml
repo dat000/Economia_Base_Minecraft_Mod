@@ -1,0 +1,29 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="economia"
+version="1.0.0"
+displayName="Economia"
+displayURL="https://mcreator.net"
+logoFile="logo.png"
+credits="devdat, mcreator"
+authors="devdat"
+description="**Economia** is a simple Minecraft mod that adds a basic economy system. Every player has a money balance that can be managed through player-to-player transfers and admin commands, including giving, removing, and setting balances, making it easy to integrate into any server or gameplay experience. "
+
+# Start of user code block mod configuration
+# End of user code block mod configuration
+
+[[dependencies.economia]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1]"
+    ordering="AFTER"
+    side="BOTH"
+
+
+
+
+# Start of user code block dependencies configuration
+# End of user code block dependencies configuration

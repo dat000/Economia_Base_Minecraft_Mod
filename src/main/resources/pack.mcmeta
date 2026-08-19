@@ -1,0 +1,6 @@
+{
+  "pack": {
+    "pack_format": 15,
+    "description": "**Economia** is a simple Minecraft mod that adds a basic economy system. Every player has a money balance that can be managed through player-to-player transfers and admin commands, including giving, removing, and setting balances, making it easy to integrate into any server or gameplay experience. "
+  }
+}
