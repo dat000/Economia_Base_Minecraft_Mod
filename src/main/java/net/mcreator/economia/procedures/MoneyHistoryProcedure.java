@@ -27,7 +27,7 @@ public class MoneyHistoryProcedure {
                 entity.sendSystemMessage(Component.literal(""));
             }
 
-            int pageSize = 10; // Máximo 10 por página como pediste
+            int pageSize = 8; // Máximo 10 por página como pediste
             int totalItems = history.size();
             int totalPages = (int) Math.ceil((double) totalItems / pageSize);
 
@@ -35,7 +35,7 @@ public class MoneyHistoryProcedure {
             if (page > totalPages) page = totalPages;
             if (page < 1) page = 1;
 
-            entity.sendSystemMessage(Component.literal("§6=== 📜 Transaction History (Page " + page + "/" + totalPages + ") ==="));
+            entity.sendSystemMessage(Component.literal("§6=== ☵ Transaction History (§fPage " + page + "§7/§f" + totalPages + "§6) ==="));
 
             // Mostrar los elementos de la página actual (orden inverso para ver lo más nuevo primero)
             int startIndex = totalItems - ((page - 1) * pageSize);
@@ -50,14 +50,14 @@ public class MoneyHistoryProcedure {
             boolean hasNavigation = false;
 
             if (page > 1) {
-                Component prevButton = Component.literal("§b[⬅ Back] ")
+                Component prevButton = Component.literal("§a[⬅ §fBack§a] ")
                         .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/$ history " + (page - 1))));
                 navigationBar.append(prevButton);
                 hasNavigation = true;
             }
 
             if (page < totalPages) {
-                Component nextButton = Component.literal("§b[Next ➡]")
+                Component nextButton = Component.literal("§a[§fNext ➡§a]")
                         .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/$ history " + (page + 1))));
                 navigationBar.append(nextButton);
                 hasNavigation = true;
