@@ -65,7 +65,24 @@ public class AdminEcoSystemCommand {
 
 					MoneySETProcedure.execute(world, x, y, z, arguments, entity);
 					return 0;
-				})))));
+				})))).then(Commands.literal("reset")
+				.then(Commands.argument("name", EntityArgument.player())
+						.executes(arguments -> {
+							Entity targetEntity = EntityArgument.getEntity(arguments, "name");
+							Level level = arguments.getSource().getLevel();
+							if (targetEntity != null && targetEntity.level() instanceof ServerLevel _servLevel) {
+								ServerLevel serverLevel = (ServerLevel) _servLevel;
+								// Accedemos a los datos y limpiamos la lista de ese jugador
+								net.mcreator.economia.TransactionManager.get(serverLevel).getHistory(targetEntity.getUUID()).clear();
+
+								// Marcamos como "sucio" para que se guarde el cambio en el archivo .dat
+								net.mcreator.economia.TransactionManager.get(serverLevel).setDirty();
+
+								arguments.getSource().sendSuccess(() ->
+										net.minecraft.network.chat.Component.literal("§f" + targetEntity.getDisplayName().getString() + "§a history reset successfully"), true);
+							}
+							return 0;
+				}))));
 	}
 
 }
