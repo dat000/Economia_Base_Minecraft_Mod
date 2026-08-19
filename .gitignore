@@ -1,0 +1,20 @@
+# --- Directorios de Gradle y compilación (¡Los más pesados!) ---
+.gradle/
+build/
+bin/
+
+# --- Entornos de desarrollo de IDEs ---
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# --- Entornos de ejecución y pruebas locales de Minecraft ---
+# (Esto evita que subas los mundos de prueba "run/world" y logs viejos)
+run/
+
+# --- Archivos del sistema operativo ---
+.DS_Store
+Thumbs.db
+*.log
