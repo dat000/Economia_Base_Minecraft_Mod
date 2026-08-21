@@ -14,7 +14,6 @@ public class AdminPayAllProcedure {
 
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm, dd-MM");
         String timestamp = "§7[" + java.time.LocalDateTime.now().format(formatter) + "] ";
-        String formattedAmount = new java.text.DecimalFormat("##.##").format(amount);
 
         // Iterar sobre todos los jugadores conectados
         for (ServerPlayer targetPlayer : serverLevel.players()) {
@@ -22,19 +21,19 @@ public class AdminPayAllProcedure {
                 capability.money += amount;
                 capability.markSyncDirty();
 
-                // Agregar al historial de cada uno
+                // Agregar al historial de cada uno (Corregido cierre de paréntesis)
                 net.mcreator.economia.TransactionManager.get(serverLevel).addTransaction(targetPlayer.getUUID(),
-                        timestamp + "§a+ $" + formattedAmount + " §7from §dServer Admin");
+                        timestamp + "§a+ " + net.mcreator.economia.EconomyConfig.formatMoney(amount) + " §7from §cServer Admin");
 
-                // Mensaje y sonido para cada jugador
-                targetPlayer.displayClientMessage(Component.literal("§aYou received §e$" + formattedAmount + "§a from a Server Administrator!"), false);
+                // Mensaje y sonido para cada jugador (Corregido el boolean "false" y cierre)
+                targetPlayer.displayClientMessage(Component.literal("§aYou received §e" + net.mcreator.economia.EconomyConfig.formatMoney(amount) + "§a from a Server Administrator!"), false);
                 targetPlayer.playNotifySound(net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, net.minecraft.sounds.SoundSource.NEUTRAL, 1.0F, 1.0F);
             });
         }
 
-        // Mensaje de éxito para el administrador que ejecutó el comando
+        // Mensaje de éxito para el administrador que ejecutó el comando (Corregido para usar formatMoney)
         if (entity instanceof net.minecraft.world.entity.player.Player _admin) {
-            _admin.displayClientMessage(Component.literal("§aSuccessfully sent §e$" + formattedAmount + "§a to all online players."), false);
+            _admin.displayClientMessage(Component.literal("§aSuccessfully sent §e" + net.mcreator.economia.EconomyConfig.formatMoney(amount) + "§a to all online players."), false);
         }
     }
 }

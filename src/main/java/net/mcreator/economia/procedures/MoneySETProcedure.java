@@ -30,7 +30,7 @@ public class MoneySETProcedure {
 			});
 		}
 		if (entity instanceof Player _player && !_player.level().isClientSide())
-			_player.displayClientMessage(Component.literal(("\u00A7aYou have successfully SET \u00A7e" + new java.text.DecimalFormat("##.##").format(DoubleArgumentType.getDouble(arguments, "moneySet")))), false);
+			_player.displayClientMessage(Component.literal("§aYou have successfully SET §e" + net.mcreator.economia.EconomyConfig.formatMoney(DoubleArgumentType.getDouble(arguments, "moneySet"))), false);
 		if (world instanceof Level _level) {
 			if (!_level.isClientSide()) {
 				_level.playSound(null, BlockPos.containing(x, y, z), ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("intentionally_empty")), SoundSource.NEUTRAL, 1, 1);

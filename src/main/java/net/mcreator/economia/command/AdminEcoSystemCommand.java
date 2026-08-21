@@ -23,7 +23,7 @@ public class AdminEcoSystemCommand {
 	@SubscribeEvent
 	public static void registerCommand(RegisterCommandsEvent event) {
 		event.getDispatcher().register(Commands.literal("$admin").requires(s -> s.hasPermission(3))
-				.then(Commands.literal("get").then(Commands.argument("name", EntityArgument.player()).then(Commands.argument("moneyGet", DoubleArgumentType.doubleArg(0)).executes(arguments -> {
+				.then(Commands.literal("get").then(Commands.argument("name", EntityArgument.player()).then(Commands.argument("moneyGet", DoubleArgumentType.doubleArg(0.01)).executes(arguments -> {
 					Level world = arguments.getSource().getUnsidedLevel();
 					double x = arguments.getSource().getPosition().x();
 					double y = arguments.getSource().getPosition().y();
@@ -37,7 +37,7 @@ public class AdminEcoSystemCommand {
 
 					MoneyTestGETProcedure.execute(world, x, y, z, arguments, entity);
 					return 0;
-				})))).then(Commands.literal("rmv").then(Commands.argument("name", EntityArgument.player()).then(Commands.argument("moneyRmv", DoubleArgumentType.doubleArg(0)).executes(arguments -> {
+				})))).then(Commands.literal("rmv").then(Commands.argument("name", EntityArgument.player()).then(Commands.argument("moneyRmv", DoubleArgumentType.doubleArg(0.01)).executes(arguments -> {
 					Level world = arguments.getSource().getUnsidedLevel();
 					double x = arguments.getSource().getPosition().x();
 					double y = arguments.getSource().getPosition().y();
