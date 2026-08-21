@@ -82,6 +82,14 @@ public class AdminEcoSystemCommand {
 										net.minecraft.network.chat.Component.literal("§f" + targetEntity.getDisplayName().getString() + "§a history reset successfully"), true);
 							}
 							return 0;
+				}))).then(Commands.literal("payall")
+				.then(Commands.argument("amount", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0.01))
+						.executes(arguments -> {
+							net.mcreator.economia.procedures.AdminPayAllProcedure.execute(
+									arguments.getSource(),
+									com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(arguments, "amount")
+							);
+							return 1;
 				}))));
 	}
 
