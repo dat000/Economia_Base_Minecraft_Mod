@@ -1,7 +1,3 @@
-> **⚠️ Branch Notice (`test4updates`):** This branch serves as a staging area for pre-releases and incremental features. Changes here are tested progressively before being merged into the `main` branch as a complete version update.
-
----
-
 # 💰 Economia Mod
 
 Economia is a lightweight and flexible economy mod for Minecraft that introduces a simple money system for all players. Every player has their own balance, stored as a variable, which can be easily modified through commands. This makes the mod perfect for servers, RPG experiences, or any custom gameplay that requires a basic economy system.
@@ -49,9 +45,12 @@ The economy is designed to be simple but expandable. At its core, it provides a 
 
 This allows developers and modpack creators to build entire ecosystems around a single, consistent economy.
 
-## 🚧 Current State (Update 1.3 - Pre-release)
+## 📦 What's New in Update 1.3
 
-The mod has been updated with the highly requested **Global Leaderboard (`/$ baltop`)**. This version introduces persistent NBT storage for player usernames and balances, ensuring that offline players remain properly listed in rankings. It also features automatic data syncing for online players upon command execution, real-time transaction updates, and polished audio feedback for administrative actions.
+* **Global Leaderboard (`/$ baltop`)**: View the richest players on the server anytime, with full tracking of both active online sessions and offline users.
+* **Persistent NBT Storage**: Player usernames and balances are securely stored and loaded from the world data, ensuring rankings never lose track of users.
+* **Real-Time Data Syncing**: Transfers and administrative commands instantly update the global database. The leaderboard also auto-syncs online players upon execution.
+* **Polished Experience**: Fixed missing audio cues on administrative commands and optimized data handling.
 
 ## 📦 Perfect For
 

@@ -1,5 +1,6 @@
 package net.mcreator.economia.procedures;
 
+import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import net.minecraft.world.level.LevelAccessor;
@@ -12,7 +13,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.level.ServerLevel;
 
+import net.mcreator.economia.TransactionManager;
 import net.mcreator.economia.network.EconomiaModVariables;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -23,19 +26,31 @@ public class MoneySETProcedure {
 	public static void execute(LevelAccessor world, double x, double y, double z, CommandContext<CommandSourceStack> arguments, Entity entity) {
 		if (entity == null)
 			return;
-		{
-			(commandParameterEntity(arguments, "name")).getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
-				capability.money = DoubleArgumentType.getDouble(arguments, "moneySet");
-				capability.markSyncDirty();
-			});
-		}
+
+		Entity targetEntity = commandParameterEntity(arguments, "name");
+		if (targetEntity == null)
+			return;
+
+		double setAmount = DoubleArgumentType.getDouble(arguments, "moneySet");
+
+		targetEntity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
+			capability.money = setAmount;
+			capability.markSyncDirty();
+
+			// NUEVO: Guardamos saldo Y NOMBRE
+			if (world instanceof ServerLevel serverLevel) {
+				TransactionManager.get(serverLevel).setBalance(targetEntity.getUUID(), targetEntity.getDisplayName().getString(), capability.money);
+			}
+		});
+
 		if (entity instanceof Player _player && !_player.level().isClientSide())
-			_player.displayClientMessage(Component.literal(("\u00A7aYou have successfully SET \u00A7e" + new java.text.DecimalFormat("##.##").format(DoubleArgumentType.getDouble(arguments, "moneySet")))), false);
+			_player.displayClientMessage(Component.literal("§aYou have successfully SET §e" + net.mcreator.economia.EconomyConfig.formatMoney(setAmount)), false);
+
 		if (world instanceof Level _level) {
 			if (!_level.isClientSide()) {
-				_level.playSound(null, BlockPos.containing(x, y, z), ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("intentionally_empty")), SoundSource.NEUTRAL, 1, 1);
+				_level.playSound(null, BlockPos.containing(x, y, z), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.NEUTRAL, 1, 1);
 			} else {
-				_level.playLocalSound(x, y, z, ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("intentionally_empty")), SoundSource.NEUTRAL, 1, 1, false);
+				_level.playSound(null, BlockPos.containing(x, y, z), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.NEUTRAL, 1, 1);
 			}
 		}
 	}
