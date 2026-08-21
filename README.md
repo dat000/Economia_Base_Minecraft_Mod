@@ -1,44 +1,38 @@
 # 💰 Economia Mod
 
-<div align="center">
-
-![Minecraft Version](https://img.shields.io/badge/Minecraft-1.20.1-blue.svg)
-![Modloader](https://img.shields.io/badge/Loader-Forge%20%2F%20NeoForge-orange.svg)
-![Version](https://img.shields.io/badge/Update-1.2-green.svg)
-
-</div>
-
-**Economia** is a lightweight and flexible economy mod for Minecraft that introduces a simple money system for all players.
-
+Economia is a lightweight and flexible economy mod for Minecraft that introduces a simple money system for all players.
 Every player has their own balance, stored as a variable, which can be easily modified through commands. This makes the mod perfect for servers, RPG experiences, or any custom gameplay that requires a basic economy system.
 
 ---
 
 ## ⚙️ Features
 
-* 💵 Each player has a personal money balance.
-* ⚙️ Fully configurable currency name via `.toml` config file.
-* 🔄 Player-to-player money transfers.
-* 📜 Interactive transaction history with pagination (max 8 per page) and clickable navigation buttons.
-* 🛠️ Admin tools to give, remove, set money, and reset player transaction histories.
-* 💾 Storage optimization with built-in transaction limits per player to prevent file bloating.
-* 🎨 Clean, professional, and color-coded transaction UI styling with custom sound cues.
+* 💵 **Personal Balance:** Each player has an individual money balance tracked securely.
+* 🌐 **Multiplayer Network Synchronization:** Server-side configurations (currency name and prefix) are automatically synchronized via network packets to all connected clients upon login, ensuring a consistent experience for everyone without manual client-side configuration.
+* ⚙️ **Fully Configurable:** Easily customizable currency name and prefix via `.toml` configuration file.
+* 🔄 **Player-to-Player Transfers:** Secure transfer system with anti-spam protections and minimum amount rules.
+* 📜 **Interactive Transaction History:** Clean pagination system (max 8 per page) with clickable navigation and precise timestamp logs.
+* 🛠️ **Advanced Admin Tools:** Robust commands to give, remove, set player balances, and clear transaction histories.
+* 💾 **Storage Optimization:** Built-in transaction limits per player to prevent file bloating (`SavedData`).
+* 🎨 **Clean UI & Audio Cues:** Professional, color-coded transaction UI styling paired with custom sound feedback.
 
 ---
 
 ## 💬 Commands
 
 ### 👤 Player Commands
+
 | Command | Description |
 | :--- | :--- |
-| `/$ transfer <player> <amount>` | Send money to another player. |
+| `/$ transfer <player> <amount>` | Send money to another player (Requires amount > 0). |
 | `/$ history [page]` | View your personal transaction history. |
 
 ### 🛡️ Admin Commands
+
 | Command | Description |
 | :--- | :--- |
-| `/$admin get <player> <amount>` | Give money to a player. |
-| `/$admin rmv <player> <amount>` | Remove money from a player. |
+| `/$admin get <player> <amount>` | Give money to a player (Minimum: 0.01). |
+| `/$admin rmv <player> <amount>` | Remove money from a player (Minimum: 0.01). |
 | `/$admin set <player> <amount>` | Set a player’s balance directly. |
 | `/$admin reset <player>` | Clear a specific player's transaction history. |
 
@@ -59,9 +53,11 @@ This allows developers and modpack creators to build entire ecosystems around a 
 
 ---
 
-## 🚧 Current State (Update 1.2)
+## 🚧 Current State (Update 1.3)
 
-The mod has been updated with enhanced UI/UX for transaction menus, pagination limits, storage management, and advanced administrative reset tools.
+* **Multiplayer Ready:** Introduced automatic server-to-client config synchronization to unify currency names/prefixes across all players.
+* **Security & Anti-Spam:** Added strict value validations (`> 0` minimum limits) on player transfers and administrative modify commands to prevent exploit loops and spamming.
+* **Bug Fixes & Polish:** Resolved target scoping bugs in admin modification procedures and cleaned up history UI formatting.
 
 ---
 
@@ -76,8 +72,7 @@ The mod has been updated with enhanced UI/UX for transaction menus, pagination l
 
 ## 👤 Author & Links
 
-Developed by **devdat** / The Economia - Base Team
-
-* 🔨 **CurseForge:** [devdat's Profile](https://www.curseforge.com/members/devdat/projects)
-* 👽 **Reddit:** [u/datonreddit](https://www.reddit.com/user/datonreddit)
-* 📦 **My Other Mods:** [Check out my full mod collection on CurseForge!](https://www.curseforge.com/minecraft/mc-mods/simple-andesite)
+* **Developed by:** devdat / The Economia - Base Team
+* **CurseForge:** [devdat's Profile](https://curseforge.com)
+* **Reddit:** [u/datonreddit](https://reddit.com)
+* **Other Mods:** Check out my full mod collection on CurseForge!
