@@ -7,6 +7,8 @@ public class EconomyConfig {
     public static final ForgeConfigSpec SPEC;
 
     public static final ForgeConfigSpec.ConfigValue<String> CURRENCY_NAME;
+    public static final ForgeConfigSpec.ConfigValue<String> CURRENCY_PREFIX;
+    public static final ForgeConfigSpec.ConfigValue<String> CURRENCY_SUFFIX;
     public static final ForgeConfigSpec.DoubleValue STARTING_BALANCE;
 
     static {
@@ -16,6 +18,14 @@ public class EconomyConfig {
                 .comment("Name of the currency used on the server")
                 .define("currencyName", "Money");
 
+        CURRENCY_PREFIX = BUILDER
+                .comment("Prefix for the currency (e.g., '$'). Leave empty for none.")
+                .define("currencyPrefix", "$");
+
+        CURRENCY_SUFFIX = BUILDER
+                .comment("Suffix for the currency (e.g., ' Coins'). Leave empty for none.")
+                .define("currencySuffix", "");
+
         STARTING_BALANCE = BUILDER
                 .comment("Initial balance upon first login")
                 .defineInRange("startingBalance", 100.0, 0.0, Double.MAX_VALUE);
@@ -24,4 +34,16 @@ public class EconomyConfig {
         SPEC = BUILDER.build();
     }
 
+    // Metodo global para formatear el dinero en tqdo el mod
+    public static String formatMoney(double amount) {
+        String prefix;
+        // Si estamos en el cliente, usamos el prefijo sincronizado por el servidor
+        if (net.minecraft.client.Minecraft.getInstance().level != null) {
+            prefix = net.mcreator.economia.client.EconomyClientCache.getCurrencyPrefix();
+        } else {
+            // Si estamos en el servidor, leemos del archivo de configuración del server
+            prefix = CURRENCY_PREFIX.get();
+        }
+        return prefix + new java.text.DecimalFormat("##.##").format(amount);
+    }
 }

@@ -14,6 +14,7 @@ import net.minecraft.commands.Commands;
 
 import net.mcreator.economia.procedures.TransferSystemProcedure;
 import net.mcreator.economia.procedures.MoneyHistoryProcedure;
+import net.mcreator.economia.procedures.BaltopProcedure;
 
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 
@@ -59,6 +60,17 @@ public class EcoSystemCommand {
 									return 0;
 								})
 						)
+				)
+
+				// --- SUBCOMANDO BALTOP ---
+				.then(Commands.literal("baltop")
+						.executes(arguments -> {
+							Entity entity = arguments.getSource().getEntity();
+							if (entity != null) {
+								BaltopProcedure.execute(arguments, entity);
+							}
+							return 0;
+						})
 				)
 		);
 	}

@@ -19,49 +19,60 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 public class TransferSystemProcedure {
 	public static void execute(LevelAccessor world, double x, double y, double z, CommandContext<CommandSourceStack> arguments, Entity entity) {
 		if (entity == null)
 			return;
-		if (entity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).orElseGet(EconomiaModVariables.PlayerVariables::new).money >= DoubleArgumentType.getDouble(arguments, "moneyWantTransfer")) {
-			{
-				(commandParameterEntity(arguments, "name")).getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
-					capability.money = (commandParameterEntity(arguments, "name")).getCapability(EconomiaModVariables.PLAYER_VARIABLES).orElseGet(EconomiaModVariables.PlayerVariables::new).money
-							+ DoubleArgumentType.getDouble(arguments, "moneyWantTransfer");
-					capability.markSyncDirty();
-				});
-			}
-			{
-				entity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
-					capability.money = entity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).orElseGet(EconomiaModVariables.PlayerVariables::new).money - DoubleArgumentType.getDouble(arguments, "moneyWantTransfer");
-					capability.markSyncDirty();
 
-					// Sistema de registro de Historail con hora
-					double transferAmount = DoubleArgumentType.getDouble(arguments, "moneyWantTransfer");
-					Entity targetEntity = commandParameterEntity(arguments, "name");
-
-					// Asegurarnos de que estamos del lado del servidor para guardar
-					if (targetEntity != null && world instanceof ServerLevel serverLevel) {
-						java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm, dd-MM");
-						String timestamp = "§7[" + java.time.LocalDateTime.now().format(formatter) + "] ";
-
-						// Usamos .get(serverLevel) para obtener la clase que está conectada al disco duro
-						TransactionManager.get(serverLevel).addTransaction(entity.getUUID(),
-								timestamp + "§c- $" + new java.text.DecimalFormat("##.##").format(transferAmount) + " §7to §f" + targetEntity.getDisplayName().getString());
-
-						TransactionManager.get(serverLevel).addTransaction(targetEntity.getUUID(),
-								timestamp + "§a+ $" + new java.text.DecimalFormat("##.##").format(transferAmount) + " §7from §f" + entity.getDisplayName().getString());
-					}
-
-
-				});
-			}
+		// Validar que no se transfiera 0 o menos
+		double amount = DoubleArgumentType.getDouble(arguments, "moneyWantTransfer");
+		if (amount <= 0) {
 			if (entity instanceof Player _player && !_player.level().isClientSide())
-				_player.displayClientMessage(Component.literal(("§aYou have successfully sent " + "§e" + new java.text.DecimalFormat("##.##").format(DoubleArgumentType.getDouble(arguments, "moneyWantTransfer")) + "§a to "
-						+ ("§f" + (commandParameterEntity(arguments, "name")).getDisplayName().getString()))), false);
+				_player.displayClientMessage(Component.literal("§cThe transfer amount must be greater than 0."), false);
+			return;
+		}
+
+		Entity targetEntity = commandParameterEntity(arguments, "name");
+		if (targetEntity == null)
+			return;
+
+		if (entity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).orElseGet(EconomiaModVariables.PlayerVariables::new).money >= amount) {
+
+			// --- ACTUALIZAR AL QUE RECIBE ---
+			targetEntity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
+				capability.money += amount;
+				capability.markSyncDirty();
+
+				// NUEVO: Guardamos su nuevo saldo en el TransactionManager para el Baltop
+				if (world instanceof ServerLevel serverLevel) {
+					TransactionManager.get(serverLevel).setBalance(targetEntity.getUUID(), targetEntity.getDisplayName().getString(), capability.money);
+				}
+			});
+
+			// --- ACTUALIZAR AL QUE ENVÍA ---
+			entity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
+				capability.money -= amount;
+				capability.markSyncDirty();
+
+				if (world instanceof ServerLevel serverLevel) {
+					// NUEVO: Guardamos su nuevo saldo en el TransactionManager para el Baltop
+					TransactionManager.get(serverLevel).setBalance(targetEntity.getUUID(), targetEntity.getDisplayName().getString(), capability.money);
+
+					// Sistema de registro de Historial con hora
+					java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm, dd-MM");
+					String timestamp = "§7[" + java.time.LocalDateTime.now().format(formatter) + "] ";
+
+					TransactionManager.get(serverLevel).addTransaction(entity.getUUID(),
+							timestamp + "§c- " + net.mcreator.economia.EconomyConfig.formatMoney(amount) + " §7to §f" + targetEntity.getDisplayName().getString());
+
+					TransactionManager.get(serverLevel).addTransaction(targetEntity.getUUID(),
+							timestamp + "§a+ " + net.mcreator.economia.EconomyConfig.formatMoney(amount) + " §7from §f" + entity.getDisplayName().getString());
+				}
+			});
+
+			if (entity instanceof Player _player && !_player.level().isClientSide())
+				_player.displayClientMessage(Component.literal("§aYou have successfully sent §e" + net.mcreator.economia.EconomyConfig.formatMoney(amount) + "§a to §f" + targetEntity.getDisplayName().getString()), false);
+
 			if (world instanceof Level _level) {
 				if (!_level.isClientSide()) {
 					_level.playSound(null, BlockPos.containing(x, y, z), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.NEUTRAL, 1, 1);
@@ -69,20 +80,19 @@ public class TransferSystemProcedure {
 					_level.playLocalSound(x, y, z, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.NEUTRAL, 1, 1, false);
 				}
 			}
-			if ((commandParameterEntity(arguments, "name")) instanceof Player _player && !_player.level().isClientSide())
-				_player.displayClientMessage(Component.literal(
-						("§aYou have received " + "§e" + new java.text.DecimalFormat("##.##").format(DoubleArgumentType.getDouble(arguments, "moneyWantTransfer")) + "§a from " + ("§f" + entity.getDisplayName().getString()))),
-						false);
+
+			if (targetEntity instanceof Player _player && !_player.level().isClientSide())
+				_player.displayClientMessage(Component.literal("§aYou have received §e" + net.mcreator.economia.EconomyConfig.formatMoney(amount) + "§a from §f" + entity.getDisplayName().getString()), false);
 		} else {
 			if (world instanceof Level _level) {
 				if (!_level.isClientSide()) {
 					_level.playSound(null, BlockPos.containing(x, y, z), net.minecraft.sounds.SoundEvents.VILLAGER_NO, SoundSource.NEUTRAL, 1, 1);
 				} else {
-					_level.playLocalSound(x, y, z, SoundEvents.VILLAGER_NO, SoundSource.NEUTRAL, 1, 1, false);
+					_level.playLocalSound(x, y, z, net.minecraft.sounds.SoundEvents.VILLAGER_NO, SoundSource.NEUTRAL, 1, 1, false);
 				}
 			}
 			if (entity instanceof Player _player && !_player.level().isClientSide())
-				_player.displayClientMessage(Component.literal(("§eYou don't have enough money to complete this transfer." + "§e")), false);
+				_player.displayClientMessage(Component.literal("§eYou don't have enough money to complete this transfer."), false);
 		}
 	}
 
