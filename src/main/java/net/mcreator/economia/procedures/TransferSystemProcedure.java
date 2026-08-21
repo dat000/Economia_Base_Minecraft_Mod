@@ -37,17 +37,28 @@ public class TransferSystemProcedure {
 			return;
 
 		if (entity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).orElseGet(EconomiaModVariables.PlayerVariables::new).money >= amount) {
+
+			// --- ACTUALIZAR AL QUE RECIBE ---
 			targetEntity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
 				capability.money += amount;
 				capability.markSyncDirty();
+
+				// NUEVO: Guardamos su nuevo saldo en el TransactionManager para el Baltop
+				if (world instanceof ServerLevel serverLevel) {
+					TransactionManager.get(serverLevel).setBalance(targetEntity.getUUID(), targetEntity.getDisplayName().getString(), capability.money);
+				}
 			});
 
+			// --- ACTUALIZAR AL QUE ENVÍA ---
 			entity.getCapability(EconomiaModVariables.PLAYER_VARIABLES).ifPresent(capability -> {
 				capability.money -= amount;
 				capability.markSyncDirty();
 
-				// Sistema de registro de Historial con hora
 				if (world instanceof ServerLevel serverLevel) {
+					// NUEVO: Guardamos su nuevo saldo en el TransactionManager para el Baltop
+					TransactionManager.get(serverLevel).setBalance(targetEntity.getUUID(), targetEntity.getDisplayName().getString(), capability.money);
+
+					// Sistema de registro de Historial con hora
 					java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm, dd-MM");
 					String timestamp = "§7[" + java.time.LocalDateTime.now().format(formatter) + "] ";
 

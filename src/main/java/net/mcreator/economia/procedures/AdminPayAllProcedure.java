@@ -23,10 +23,10 @@ public class AdminPayAllProcedure {
 
                 // Agregar al historial de cada uno (Corregido cierre de paréntesis)
                 net.mcreator.economia.TransactionManager.get(serverLevel).addTransaction(targetPlayer.getUUID(),
-                        timestamp + "§a+ " + net.mcreator.economia.EconomyConfig.formatMoney(amount) + " §7from §cServer Admin");
+                        timestamp + "§a+ " + net.mcreator.economia.EconomyConfig.formatMoney(amount) + " §7from §5Server Admin");
 
                 // Mensaje y sonido para cada jugador (Corregido el boolean "false" y cierre)
-                targetPlayer.displayClientMessage(Component.literal("§aYou received §e" + net.mcreator.economia.EconomyConfig.formatMoney(amount) + "§a from a Server Administrator!"), false);
+                targetPlayer.displayClientMessage(Component.literal("§aYou received §e" + net.mcreator.economia.EconomyConfig.formatMoney(amount) + "§a from a §5Server Administrator§a!"), false);
                 targetPlayer.playNotifySound(net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, net.minecraft.sounds.SoundSource.NEUTRAL, 1.0F, 1.0F);
             });
         }
