@@ -62,6 +62,6 @@ This allows developers and modpack creators to build entire ecosystems around a 
 ## 👤 Author & Links
 
 * Developed by devdat / The Economia - Base Team
-* 🔨 CurseForge: [devdat's Profile](https://www.curseforge.com/)
+* 🔨 CurseForge: [devdat's Profile](https://www.curseforge.com/members/devdat)
 * 👽 Reddit: `u/datonreddit`
 * 📦 My Other Mods: Check out my full mod collection on CurseForge!
