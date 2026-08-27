@@ -13,7 +13,9 @@ public class TransactionManager extends SavedData {
 
     private final Map<UUID, List<String>> historyMap = new HashMap<>();
     private final Map<UUID, Double> balancesMap = new HashMap<>();
-    private final Map<UUID, String> playerNamesMap = new HashMap<>(); // NUEVO: Guardar nombres
+    private final Map<UUID, String> playerNamesMap = new HashMap<>();
+    private final Map<UUID, Double> bountiesMap = new HashMap<>(); // NUEVO: Guardar bounties
+
     private static final int MAX_HISTORY = 30;
 
     public TransactionManager() {}
@@ -46,7 +48,6 @@ public class TransactionManager extends SavedData {
             }
         }
 
-        // NUEVO: Cargar los nombres guardados
         if (tag.contains("PlayerNames")) {
             CompoundTag namesTag = tag.getCompound("PlayerNames");
             for (String uuidStr : namesTag.getAllKeys()) {
@@ -57,12 +58,23 @@ public class TransactionManager extends SavedData {
             }
         }
 
+        if (tag.contains("PlayerBounties")) {
+            CompoundTag bountiesTag = tag.getCompound("PlayerBounties");
+            for (String uuidStr : bountiesTag.getAllKeys()) {
+                try {
+                    UUID uuid = UUID.fromString(uuidStr);
+                    data.bountiesMap.put(uuid, bountiesTag.getDouble(uuidStr));
+                } catch (Exception e) {}
+            }
+        }
+
         return data;
     }
 
     @Override
     public CompoundTag save(CompoundTag tag) {
         CompoundTag playersTag = new CompoundTag();
+
         for (Map.Entry<UUID, List<String>> entry : historyMap.entrySet()) {
             ListTag listTag = new ListTag();
             for (String s : entry.getValue()) {
@@ -78,12 +90,17 @@ public class TransactionManager extends SavedData {
         }
         tag.put("PlayerBalances", balancesTag);
 
-        // NUEVO: Guardar los nombres
         CompoundTag namesTag = new CompoundTag();
         for (Map.Entry<UUID, String> entry : playerNamesMap.entrySet()) {
             namesTag.putString(entry.getKey().toString(), entry.getValue());
         }
         tag.put("PlayerNames", namesTag);
+
+        CompoundTag bountiesTag = new CompoundTag();
+        for (Map.Entry<UUID, Double> entry : bountiesMap.entrySet()) {
+            bountiesTag.putDouble(entry.getKey().toString(), entry.getValue());
+        }
+        tag.put("PlayerBounties", bountiesTag);
 
         return tag;
     }
@@ -107,9 +124,8 @@ public class TransactionManager extends SavedData {
         return historyMap.getOrDefault(playerUuid, Collections.emptyList());
     }
 
-    // --- MÉTODOS DE BALTOP ACTUALIZADOS ---
+    // --- MÉTODOS DE BALTOP ---
 
-    // Ahora pedimos el nombre junto con el UUID
     public void setBalance(UUID playerUuid, String playerName, double balance) {
         balancesMap.put(playerUuid, balance);
         playerNamesMap.put(playerUuid, playerName); // Se guarda el nombre
@@ -124,8 +140,29 @@ public class TransactionManager extends SavedData {
         return balancesMap;
     }
 
-    // Nuevo metodo para recuperar el nombre del disco
     public String getPlayerName(UUID uuid) {
         return playerNamesMap.getOrDefault(uuid, "Unknown");
     }
+
+    // --- MÉTODOS DE BOUNTIES ---
+
+    public void addBounty(UUID targetUuid, double amount) {
+        double current = bountiesMap.getOrDefault(targetUuid, 0.0);
+        bountiesMap.put(targetUuid, current + amount);
+        this.setDirty();
+    }
+
+    public double getBounty(UUID targetUuid) {
+        return bountiesMap.getOrDefault(targetUuid, 0.0);
+    }
+
+    public void removeBounty(UUID targetUuid) {
+        bountiesMap.remove(targetUuid);
+        this.setDirty();
+    }
+
+    public Map<UUID, Double> getAllBounties() {
+        return bountiesMap;
+    }
+
 }

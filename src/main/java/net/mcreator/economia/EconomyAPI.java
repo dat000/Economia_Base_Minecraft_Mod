@@ -3,6 +3,8 @@ package net.mcreator.economia;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
+import net.mcreator.economia.network.EconomiaModVariables;
+
 import java.util.UUID;
 
 public class EconomyAPI {
@@ -13,6 +15,22 @@ public class EconomyAPI {
 
     public static double getBalance(ServerLevel level, UUID playerUuid) {
         if (level == null || playerUuid == null) return 0.0;
+
+        ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUuid);
+
+        // Si el jugador está online, leemos el dinero real de la pantalla de MCreator
+        if (player != null) {
+            double dineroReal = player.getCapability(EconomiaModVariables.PLAYER_VARIABLES, null)
+                    .map(cap -> cap.money)
+                    .orElse(0.0);
+
+            // Actualizamos la base de datos de fondo silenciosamente (sirve para el baltop)
+            TransactionManager.get(level).setBalance(playerUuid, player.getScoreboardName(), dineroReal);
+
+            return dineroReal;
+        }
+
+        // Si el jugador está offline, leemos de la base de datos de la API
         return TransactionManager.get(level).getBalance(playerUuid);
     }
 
@@ -31,8 +49,24 @@ public class EconomyAPI {
 
     public static void setMoney(ServerLevel level, UUID playerUuid, String playerName, double amount) {
         if (level == null || playerUuid == null) return;
+
         TransactionManager manager = TransactionManager.get(level);
-        manager.setBalance(playerUuid, playerName, Math.max(0, amount));
+        double cantidadFinal = Math.max(0, amount);
+
+        manager.setBalance(playerUuid, playerName, cantidadFinal);
+
+        ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUuid);
+        if (player != null) {
+            player.getCapability(EconomiaModVariables.PLAYER_VARIABLES, null).ifPresent(capability -> {
+
+                // Actualiza el dinero visual
+                capability.money = cantidadFinal;
+
+                // Le avisa al juego que debe actualizar la pantalla del jugador
+                capability.markSyncDirty();
+
+            });
+        }
     }
 
     public static void addMoney(ServerLevel level, UUID playerUuid, String playerName, double amount, String reason) {
