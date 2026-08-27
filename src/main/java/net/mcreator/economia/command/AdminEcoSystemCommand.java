@@ -19,6 +19,7 @@ import net.mcreator.economia.TransactionManager;
 import net.mcreator.economia.procedures.MoneyTestGETProcedure;
 import net.mcreator.economia.procedures.MoneySETProcedure;
 import net.mcreator.economia.procedures.MoneyRmvProcedure;
+import net.mcreator.economia.FrozenAccountsManager;
 
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 
@@ -157,6 +158,31 @@ public class AdminEcoSystemCommand {
 												source.sendSuccess(() -> Component.literal("§7- " + entry), false);
 											}
 
+											return 1;
+										})
+								)
+						)
+
+						// 8. FREEZE / UNFREEZE}
+						.then(Commands.literal("freeze")
+								.then(Commands.argument("target", EntityArgument.player())
+										.executes(arguments -> {
+											ServerPlayer targetPlayer = EntityArgument.getPlayer(arguments, "target");
+											ServerLevel level = arguments.getSource().getLevel();
+
+											FrozenAccountsManager manager = FrozenAccountsManager.get(level);
+											boolean currentlyFrozen = manager.isFrozen(targetPlayer.getUUID());
+
+											// Alternar estado
+											manager.setFrozen(targetPlayer.getUUID(), !currentlyFrozen);
+
+											if (!currentlyFrozen) {
+												arguments.getSource().sendSuccess(() -> Component.literal("§c[Admin] Account of " + targetPlayer.getScoreboardName() + " has been FROZEN."), true);
+												targetPlayer.sendSystemMessage(Component.literal("§cYour bank account and economy actions have been frozen by an admin."));
+											} else {
+												arguments.getSource().sendSuccess(() -> Component.literal("§a[Admin] Account of " + targetPlayer.getScoreboardName() + " has been UNFROZEN."), true);
+												targetPlayer.sendSystemMessage(Component.literal("§aYour bank account has been unfrozen."));
+											}
 											return 1;
 										})
 								)

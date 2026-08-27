@@ -1,6 +1,7 @@
 package net.mcreator.economia.command;
 
 import net.mcreator.economia.EconomyAPI;
+import net.mcreator.economia.FrozenAccountsManager;
 import net.mcreator.economia.TransactionManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,10 +37,21 @@ public class EcoSystemCommand {
 				// --- SUBCOMANDO TRANSFER ---
 				.then(Commands.literal("transfer").then(Commands.argument("name", EntityArgument.player()).then(Commands.argument("moneyWantTransfer", DoubleArgumentType.doubleArg(0)).executes(arguments -> {
 					Level world = arguments.getSource().getUnsidedLevel();
+					Entity entity = arguments.getSource().getEntity();
+
+					// --- VALIDACIÓN DE CUENTA CONGELADA ---
+					if (entity instanceof ServerPlayer serverPlayer) {
+						FrozenAccountsManager manager = FrozenAccountsManager.get(serverPlayer.serverLevel());
+						if (manager.isFrozen(serverPlayer.getUUID())) {
+							serverPlayer.sendSystemMessage(Component.literal("§cYour account is frozen. You cannot perform transfers."));
+							return 0; // Detiene la ejecución por completo
+						}
+					}
+					// -------------------------------------
+
 					double x = arguments.getSource().getPosition().x();
 					double y = arguments.getSource().getPosition().y();
 					double z = arguments.getSource().getPosition().z();
-					Entity entity = arguments.getSource().getEntity();
 					if (entity == null && world instanceof ServerLevel _servLevel)
 						entity = FakePlayerFactory.getMinecraft(_servLevel);
 					Direction direction = Direction.DOWN;

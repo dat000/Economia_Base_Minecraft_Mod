@@ -2,6 +2,7 @@ package net.mcreator.economia;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
 
 import net.mcreator.economia.network.EconomiaModVariables;
 
@@ -81,7 +82,20 @@ public class EconomyAPI {
     }
 
     public static boolean removeMoney(ServerLevel level, UUID playerUuid, String playerName, double amount, String reason) {
-        if (amount <= 0 || !hasEnough(level, playerUuid, amount)) return false;
+        if (amount <= 0) return false;
+
+        // --- VALIDACIÓN DE CUENTA CONGELADA ---
+        FrozenAccountsManager manager = FrozenAccountsManager.get(level);
+        if (manager.isFrozen(playerUuid)) {
+            ServerPlayer onlinePlayer = level.getServer().getPlayerList().getPlayer(playerUuid);
+            if (onlinePlayer != null) {
+                onlinePlayer.sendSystemMessage(Component.literal("§cYour account is frozen. You cannot perform this economic action."));
+            }
+            return false;
+        }
+        // -------------------------------------
+
+        if (!hasEnough(level, playerUuid, amount)) return false;
 
         double currentBalance = getBalance(level, playerUuid);
         setMoney(level, playerUuid, playerName, currentBalance - amount);
