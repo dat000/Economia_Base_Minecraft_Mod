@@ -52,4 +52,13 @@ public class FrozenAccountsManager extends SavedData {
         }
         setDirty();
     }
+
+    // Métodos de atajo para facilitar el uso en los comandos y eventos
+    public void freeze(UUID uuid) {
+        setFrozen(uuid, true);
+    }
+
+    public void unfreeze(UUID uuid) {
+        setFrozen(uuid, false);
+    }
 }

@@ -1,9 +1,6 @@
 package net.mcreator.economia.command;
 
-import net.mcreator.economia.EconomyAPI;
-import net.mcreator.economia.EconomyConfig;
-import net.mcreator.economia.FrozenAccountsManager;
-import net.mcreator.economia.TransactionManager;
+import net.mcreator.economia.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.fml.common.Mod;
@@ -31,6 +28,27 @@ import java.util.UUID;
 
 @Mod.EventBusSubscriber
 public class EcoSystemCommand {
+	// Evento para verificar préstamos vencidos al iniciar sesión
+	@SubscribeEvent
+	public static void onPlayerLogin(net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
+		if (event.getEntity() instanceof ServerPlayer player) {
+			ServerLevel level = player.serverLevel();
+			CentralBankManager bankManager = CentralBankManager.get(level);
+			double debt = bankManager.getLoan(player.getUUID());
+
+			if (debt > 0) {
+				long dueDate = bankManager.getLoanDueDate(player.getUUID());
+				if (System.currentTimeMillis() > dueDate) {
+					FrozenAccountsManager frozenManager = FrozenAccountsManager.get(level);
+					if (!frozenManager.isFrozen(player.getUUID())) {
+						frozenManager.freeze(player.getUUID());
+						player.sendSystemMessage(Component.literal("§c[Central Bank] Your loan has expired! Your account has been FROZEN due to overdue debt. Use /$ loan pay to settle it."));
+					}
+				}
+			}
+		}
+	}
+
 	@SubscribeEvent
 	public static void registerCommand(RegisterCommandsEvent event) {
 		event.getDispatcher().register(Commands.literal("$")
@@ -72,9 +90,11 @@ public class EcoSystemCommand {
 					);
 
 					if (success) {
-						double tax = EconomyConfig.TRANSFER_TAX_RATE.get();
-						double net = amount - tax;
-						sender.sendSystemMessage(Component.literal("§aYou have successfully sent " + EconomyConfig.formatMoney(net) + " to " + receiver.getScoreboardName() + " (Tax: " + EconomyConfig.formatMoney(tax) + ")"));
+						double taxRate = EconomyConfig.TRANSFER_TAX_RATE.get(); // Obtiene la tasa (ej. 0.05)
+						double taxAmount = amount * taxRate;                    // Calcula el dinero real del impuesto (ej. 5.0 si envías 100)
+						double net = amount - taxAmount;                        // Calcula el neto real que llega
+
+						sender.sendSystemMessage(Component.literal("§aYou have successfully sent " + EconomyConfig.formatMoney(net) + " to " + receiver.getScoreboardName() + " (§6Tax: " + EconomyConfig.formatMoney(taxAmount) + "§a)"));
 						receiver.sendSystemMessage(Component.literal("§aYou have received " + EconomyConfig.formatMoney(net) + " from " + sender.getScoreboardName()));
 					} else {
 						sender.sendSystemMessage(Component.literal("§cTransfer failed. You may not have enough money."));
@@ -116,7 +136,6 @@ public class EcoSystemCommand {
 				)
 
 				// --- SUBCOMANDO BOUNTIES ---
-				// --- SUBCOMANDO BOUNTIES REESTRUCTURADO ---
 				.then(Commands.literal("bounty")
 
 						// 1. /$ bounty list
@@ -196,7 +215,6 @@ public class EcoSystemCommand {
 
 						// 3. /$ bounty remove <target> (Solo Administradores)
 						.then(Commands.literal("remove")
-								// El nivel 2 de permisos requiere ser OP/Admin en el servidor
 								.requires(s -> s.hasPermission(2))
 								.then(Commands.argument("target", EntityArgument.player())
 										.executes(context -> {
@@ -212,6 +230,148 @@ public class EcoSystemCommand {
 											} else {
 												source.sendSuccess(() -> Component.literal("§c" + target.getScoreboardName() + " does not have an active bounty."), false);
 											}
+											return 1;
+										})
+								)
+						)
+				)
+
+				// --- SUBCOMANDO LOAN (SISTEMA DE PRÉSTAMOS) ---
+				.then(Commands.literal("loan")
+
+						// 1. /$ loan info
+						.then(Commands.literal("info")
+								.executes(context -> {
+									ServerPlayer player = context.getSource().getPlayerOrException();
+									ServerLevel level = player.serverLevel();
+
+									CentralBankManager bankManager = CentralBankManager.get(level);
+									double debt = bankManager.getLoan(player.getUUID());
+									double treasury = bankManager.getTreasuryBalance();
+									long dueDate = bankManager.getLoanDueDate(player.getUUID());
+
+									player.sendSystemMessage(Component.literal("§6=== CENTRAL BANK ==="));
+									player.sendSystemMessage(Component.literal("§7Your current debt: §c" + EconomyConfig.formatMoney(debt)));
+
+									if (debt > 0) {
+										long now = System.currentTimeMillis();
+										long diff = dueDate - now;
+
+										if (diff <= 0) {
+											player.sendSystemMessage(Component.literal("§7Time remaining: §c§lEXPIRED (Overdue!)"));
+										} else {
+											long days = diff / (1000L * 60L * 60L * 24L);
+											long hours = (diff / (1000L * 60L * 60L)) % 24L;
+											long minutes = (diff / (1000L * 60L)) % 60L;
+
+											String timeRemainingText;
+											if (days > 0) {
+												timeRemainingText = days + " days, " + hours + " hours";
+											} else if (hours > 0) {
+												timeRemainingText = hours + " hours, " + minutes + " minutes";
+											} else {
+												timeRemainingText = minutes + " minutes";
+											}
+
+											player.sendSystemMessage(Component.literal("§7Time remaining: §e" + timeRemainingText));
+										}
+									}
+
+									player.sendSystemMessage(Component.literal("§7Bank Treasury: §a" + EconomyConfig.formatMoney(treasury)));
+									return 1;
+								})
+						)
+
+						// 2. /$ loan request <amount>
+						.then(Commands.literal("request")
+								.then(Commands.argument("amount", DoubleArgumentType.doubleArg(1.0))
+										.executes(context -> {
+											ServerPlayer player = context.getSource().getPlayerOrException();
+											ServerLevel level = player.serverLevel();
+											double amount = DoubleArgumentType.getDouble(context, "amount");
+
+											CentralBankManager bankManager = CentralBankManager.get(level);
+
+											if (bankManager.getTreasuryBalance() < amount) {
+												player.sendSystemMessage(Component.literal("§cThe Central Bank does not have enough funds in its treasury to grant this loan."));
+												return 0;
+											}
+
+											bankManager.removeTreasury(amount);
+
+											double currentDebt = bankManager.getLoan(player.getUUID());
+											long threeDaysMillis = System.currentTimeMillis() + (3L * 24L * 60L * 60L * 1000L);
+											// long threeDaysMillis = System.currentTimeMillis() + (30L * 1000L); // !!!! TESTING
+											bankManager.setLoan(player.getUUID(), currentDebt + amount, threeDaysMillis);
+
+
+											// Modificar saldo a través de la API
+											double currentBalance = EconomyAPI.getBalance(level, player.getUUID());
+											EconomyAPI.setMoney(level, player.getUUID(), player.getScoreboardName(), currentBalance + amount);
+
+											// Registrar en el historial de transacciones con el formato estandarizado
+											String timeStamp = new java.text.SimpleDateFormat("HH:mm, dd-MM").format(new java.util.Date());
+											TransactionManager managerTrans = TransactionManager.get(level);
+											managerTrans.addTransaction(player.getUUID(), "§7[" + timeStamp + "] §a+$" + amount + " §f(Central Bank Loan)");
+
+											player.sendSystemMessage(Component.literal("§aYou have successfully requested a loan of " + EconomyConfig.formatMoney(amount) + "."));
+											return 1;
+										})
+								)
+						)
+
+						// 3. /$ loan pay <amount>
+						.then(Commands.literal("pay")
+								.then(Commands.argument("amount", DoubleArgumentType.doubleArg(1.0))
+										.executes(context -> {
+											ServerPlayer player = context.getSource().getPlayerOrException();
+											ServerLevel level = player.serverLevel();
+											double amount = DoubleArgumentType.getDouble(context, "amount");
+
+											CentralBankManager bankManager = CentralBankManager.get(level);
+											double currentDebt = bankManager.getLoan(player.getUUID());
+
+											if (currentDebt <= 0) {
+												player.sendSystemMessage(Component.literal("§cYou don't have any active debts with the Central Bank."));
+												return 0;
+											}
+
+											if (amount > currentDebt) {
+												amount = currentDebt;
+											}
+
+											// Verificar si el jugador tiene suficiente dinero para pagar
+											if (!EconomyAPI.hasEnough(level, player.getUUID(), amount)) {
+												player.sendSystemMessage(Component.literal("§cYou don't have enough money to pay this amount."));
+												return 0;
+											}
+
+											// Descontar saldo directamente (permitiendo el pago incluso si está congelado)
+											double currentBalance = EconomyAPI.getBalance(level, player.getUUID());
+											EconomyAPI.setMoney(level, player.getUUID(), player.getScoreboardName(), currentBalance - amount);
+
+											// Registrar en el historial de transacciones
+											String timeStamp = new java.text.SimpleDateFormat("HH:mm, dd-MM").format(new java.util.Date());
+											TransactionManager managerTrans = TransactionManager.get(level);
+											managerTrans.addTransaction(player.getUUID(), "§7[" + timeStamp + "] §c-$" + amount + " §f(Loan Repayment)");
+
+											// Devolver fondos a la tesorería del banco y actualizar deuda
+											bankManager.addTreasury(amount);
+											double remainingDebt = currentDebt - amount;
+											long existingDueDate = bankManager.getLoanDueDate(player.getUUID());
+											bankManager.setLoan(player.getUUID(), remainingDebt, existingDueDate);
+
+											player.sendSystemMessage(Component.literal("§aYou have successfully paid " + EconomyConfig.formatMoney(amount) + " towards your loan. Remaining debt: " + EconomyConfig.formatMoney(remainingDebt)));
+
+											// Si la deuda llega a 0, DESCONGELAR automáticamente la cuenta
+											if (remainingDebt <= 0) {
+												FrozenAccountsManager frozenManager = FrozenAccountsManager.get(level);
+												if (frozenManager.isFrozen(player.getUUID())) {
+													frozenManager.unfreeze(player.getUUID());
+													player.sendSystemMessage(Component.literal("§a[Central Bank] Congratulations! You have fully paid your debt. Your account has been UNFROZEN."));
+												}
+											}
+
 											return 1;
 										})
 								)

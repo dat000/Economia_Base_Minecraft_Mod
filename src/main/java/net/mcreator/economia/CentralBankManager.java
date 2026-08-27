@@ -13,6 +13,7 @@ public class CentralBankManager extends SavedData {
 
     private double treasuryBalance = 0.0;
     private final Map<UUID, Double> activeLoans = new HashMap<>();
+    private final Map<UUID, Long> loanDueDates = new HashMap<>(); // NUEVO: Guarda el timestamp de expiración (milisegundos)
 
     public CentralBankManager() {}
 
@@ -30,6 +31,19 @@ public class CentralBankManager extends SavedData {
                 } catch (IllegalArgumentException ignored) {}
             }
         }
+
+        // Cargar fechas de vencimiento
+        if (nbt.contains("dueDatesTag")) {
+            CompoundTag dueDatesTag = nbt.getCompound("dueDatesTag");
+            for (String key : dueDatesTag.getAllKeys()) {
+                try {
+                    UUID uuid = UUID.fromString(key);
+                    long dueDate = dueDatesTag.getLong(key);
+                    data.loanDueDates.put(uuid, dueDate);
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+
         return data;
     }
 
@@ -42,6 +56,14 @@ public class CentralBankManager extends SavedData {
             loansTag.putDouble(entry.getKey().toString(), entry.getValue());
         }
         nbt.put("loansTag", loansTag);
+
+        // Guardar fechas de vencimiento
+        CompoundTag dueDatesTag = new CompoundTag();
+        for (Map.Entry<UUID, Long> entry : loanDueDates.entrySet()) {
+            dueDatesTag.putLong(entry.getKey().toString(), entry.getValue());
+        }
+        nbt.put("dueDatesTag", dueDatesTag);
+
         return nbt;
     }
 
@@ -67,11 +89,17 @@ public class CentralBankManager extends SavedData {
         return activeLoans.getOrDefault(uuid, 0.0);
     }
 
-    public void setLoan(UUID uuid, double amount) {
+    public long getLoanDueDate(UUID uuid) {
+        return loanDueDates.getOrDefault(uuid, 0L);
+    }
+
+    public void setLoan(UUID uuid, double amount, long dueDateMillis) {
         if (amount <= 0) {
             activeLoans.remove(uuid);
+            loanDueDates.remove(uuid);
         } else {
             activeLoans.put(uuid, amount);
+            loanDueDates.put(uuid, dueDateMillis);
         }
         setDirty();
     }
