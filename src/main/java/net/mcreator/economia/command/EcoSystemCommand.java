@@ -1,6 +1,7 @@
 package net.mcreator.economia.command;
 
 import net.mcreator.economia.EconomyAPI;
+import net.mcreator.economia.EconomyConfig;
 import net.mcreator.economia.FrozenAccountsManager;
 import net.mcreator.economia.TransactionManager;
 import net.minecraft.network.chat.Component;
@@ -36,30 +37,50 @@ public class EcoSystemCommand {
 
 				// --- SUBCOMANDO TRANSFER ---
 				.then(Commands.literal("transfer").then(Commands.argument("name", EntityArgument.player()).then(Commands.argument("moneyWantTransfer", DoubleArgumentType.doubleArg(0)).executes(arguments -> {
-					Level world = arguments.getSource().getUnsidedLevel();
-					Entity entity = arguments.getSource().getEntity();
+					ServerLevel level = arguments.getSource().getLevel();
+					ServerPlayer sender;
+					try {
+						sender = arguments.getSource().getPlayerOrException();
+					} catch (Exception e) {
+						return 0;
+					}
 
 					// --- VALIDACIÓN DE CUENTA CONGELADA ---
-					if (entity instanceof ServerPlayer serverPlayer) {
-						FrozenAccountsManager manager = FrozenAccountsManager.get(serverPlayer.serverLevel());
-						if (manager.isFrozen(serverPlayer.getUUID())) {
-							serverPlayer.sendSystemMessage(Component.literal("§cYour account is frozen. You cannot perform transfers."));
-							return 0; // Detiene la ejecución por completo
-						}
+					FrozenAccountsManager manager = FrozenAccountsManager.get(level);
+					if (manager.isFrozen(sender.getUUID())) {
+						sender.sendSystemMessage(Component.literal("§cYour account is frozen. You cannot perform transfers."));
+						return 0;
 					}
 					// -------------------------------------
 
-					double x = arguments.getSource().getPosition().x();
-					double y = arguments.getSource().getPosition().y();
-					double z = arguments.getSource().getPosition().z();
-					if (entity == null && world instanceof ServerLevel _servLevel)
-						entity = FakePlayerFactory.getMinecraft(_servLevel);
-					Direction direction = Direction.DOWN;
-					if (entity != null)
-						direction = entity.getDirection();
+					ServerPlayer receiver = EntityArgument.getPlayer(arguments, "name");
+					double amount = DoubleArgumentType.getDouble(arguments, "moneyWantTransfer");
 
-					TransferSystemProcedure.execute(world, x, y, z, arguments, entity);
-					return 0;
+					if (sender.getUUID().equals(receiver.getUUID())) {
+						sender.sendSystemMessage(Component.literal("§cYou cannot transfer money to yourself."));
+						return 0;
+					}
+
+					// Ejecutamos la transferencia centralizada con impuestos
+					boolean success = EconomyAPI.transferMoney(
+							level,
+							sender.getUUID(),
+							sender.getScoreboardName(),
+							receiver.getUUID(),
+							receiver.getScoreboardName(),
+							amount
+					);
+
+					if (success) {
+						double tax = EconomyConfig.TRANSFER_TAX_RATE.get();
+						double net = amount - tax;
+						sender.sendSystemMessage(Component.literal("§aYou have successfully sent " + EconomyConfig.formatMoney(net) + " to " + receiver.getScoreboardName() + " (Tax: " + EconomyConfig.formatMoney(tax) + ")"));
+						receiver.sendSystemMessage(Component.literal("§aYou have received " + EconomyConfig.formatMoney(net) + " from " + sender.getScoreboardName()));
+					} else {
+						sender.sendSystemMessage(Component.literal("§cTransfer failed. You may not have enough money."));
+					}
+
+					return 1;
 				}))))
 
 				// --- SUBCOMANDO HISTORY CON PÁGINAS ---

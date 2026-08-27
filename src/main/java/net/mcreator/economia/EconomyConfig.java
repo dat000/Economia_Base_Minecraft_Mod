@@ -11,6 +11,9 @@ public class EconomyConfig {
     public static final ForgeConfigSpec.ConfigValue<String> CURRENCY_SUFFIX;
     public static final ForgeConfigSpec.DoubleValue STARTING_BALANCE;
 
+    // --- NUEVO: Configuración de Impuestos ---
+    public static final ForgeConfigSpec.DoubleValue TRANSFER_TAX_RATE;
+
     static {
         BUILDER.push("General Settings");
 
@@ -30,11 +33,16 @@ public class EconomyConfig {
                 .comment("Initial balance upon first login")
                 .defineInRange("startingBalance", 100.0, 0.0, Double.MAX_VALUE);
 
+        // --- NUEVO: Definición del impuesto por transferencia ---
+        TRANSFER_TAX_RATE = BUILDER
+                .comment("Percentage of tax applied to player-to-player transfers (e.g., 0.05 = 5%, 0.10 = 10%, 0.0 = no tax)")
+                .defineInRange("transferTaxRate", 0.05, 0.0, 1.0);
+
         BUILDER.pop();
         SPEC = BUILDER.build();
     }
 
-    // Metodo global para formatear el dinero en tqdo el mod
+    // Metodo global para formatear el dinero en todo el mod
     public static String formatMoney(double amount) {
         String prefix;
         // Si estamos en el cliente, usamos el prefijo sincronizado por el servidor

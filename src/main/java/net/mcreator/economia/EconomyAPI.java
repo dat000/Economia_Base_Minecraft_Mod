@@ -70,6 +70,50 @@ public class EconomyAPI {
         }
     }
 
+    public static boolean transferMoney(ServerLevel level, UUID senderUuid, String senderName, UUID receiverUuid, String receiverName, double amount) {
+        if (level == null || senderUuid == null || receiverUuid == null || amount <= 0) return false;
+
+        // 1. Validar si el emisor está congelado
+        FrozenAccountsManager frozenManager = FrozenAccountsManager.get(level);
+        if (frozenManager.isFrozen(senderUuid)) {
+            return false;
+        }
+
+        // 2. Definir tasa de impuestos (5% = 0.05)
+        double taxRate = EconomyConfig.TRANSFER_TAX_RATE.get();
+        double taxAmount = amount * taxRate;
+        double netAmount = amount - taxAmount;
+
+        // 3. Verificar si el emisor tiene suficiente para el total
+        if (!hasEnough(level, senderUuid, amount)) {
+            return false;
+        }
+
+        // 4. Ejecutar el movimiento monetario a través de la API (esto ya maneja su propio historial base,
+        // pero podemos personalizarlo o dejar que la API gestione los saldos limpios).
+        double senderBalance = getBalance(level, senderUuid);
+        double receiverBalance = getBalance(level, receiverUuid);
+
+        setMoney(level, senderUuid, senderName, senderBalance - amount);
+        setMoney(level, receiverUuid, receiverName, receiverBalance + netAmount);
+
+        // 5. El impuesto va directo a la Tesorería del Banco Central
+        if (taxAmount > 0) {
+            CentralBankManager bankManager = CentralBankManager.get(level);
+            bankManager.addTreasury(taxAmount);
+        }
+
+        // 6. Registro detallado y limpio en el historial de ambos jugadores
+        String timeStamp = new java.text.SimpleDateFormat("HH:mm, dd-MM").format(new java.util.Date());
+
+        TransactionManager manager = TransactionManager.get(level);
+        manager.addTransaction(senderUuid, "§7[" + timeStamp + "] §c-$" + amount + " §f(Transfer to " + receiverName + ", Tax: $" + taxAmount + ")");
+        manager.addTransaction(receiverUuid, "§7[" + timeStamp + "] §a+$" + netAmount + " §f(Transfer from " + senderName + ")");
+
+        return true;
+    }
+
+
     public static void addMoney(ServerLevel level, UUID playerUuid, String playerName, double amount, String reason) {
         if (amount <= 0) return;
         double currentBalance = getBalance(level, playerUuid);
