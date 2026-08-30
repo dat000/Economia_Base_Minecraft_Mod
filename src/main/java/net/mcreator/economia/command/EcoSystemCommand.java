@@ -292,29 +292,54 @@ public class EcoSystemCommand {
 
 											CentralBankManager bankManager = CentralBankManager.get(level);
 
-											if (bankManager.getTreasuryBalance() < amount) {
-												player.sendSystemMessage(Component.literal("§cThe Central Bank does not have enough funds in its treasury to grant this loan."));
+											// Comprobar si ya tiene una deuda
+											if (bankManager.getLoan(player.getUUID()) > 0) {
+												player.sendSystemMessage(Component.literal("§cYou already have an active loan. You must pay it off before requesting a new one."));
 												return 0;
 											}
 
-											bankManager.removeTreasury(amount);
+											// --- DEFENSA 1: Comprobar el límite máximo del config ---
+											double maxLoan = EconomyConfig.MAX_LOAN_AMOUNT.get();
+											if (amount > maxLoan) {
+												player.sendSystemMessage(Component.literal("§cThe bank limit per loan is " + EconomyConfig.formatMoney(maxLoan) + "."));
+												return 0;
+											}
 
-											double currentDebt = bankManager.getLoan(player.getUUID());
-											long threeDaysMillis = System.currentTimeMillis() + (3L * 24L * 60L * 60L * 1000L);
-											// long threeDaysMillis = System.currentTimeMillis() + (30L * 1000L); // !!!! TESTING
-											bankManager.setLoan(player.getUUID(), currentDebt + amount, threeDaysMillis);
+											// --- DEFENSA 2: Comprobar si el Banco tiene suficiente dinero ---
+											double currentTreasury = bankManager.getTreasuryBalance();
+											if (amount > currentTreasury) {
+												player.sendSystemMessage(Component.literal("§cThe Central Bank does not have enough funds (" + EconomyConfig.formatMoney(currentTreasury) + " available)."));
+												return 0;
+											}
 
+											// CÁLCULO DE INTERÉS
+											double interestRate = EconomyConfig.LOAN_INTEREST_RATE.get();
+											double interestAmount = amount * interestRate;
+											double totalDebt = amount + interestAmount;
 
-											// Modificar saldo a través de la API
+											// Entregar el dinero líquido al jugador
 											double currentBalance = EconomyAPI.getBalance(level, player.getUUID());
 											EconomyAPI.setMoney(level, player.getUUID(), player.getScoreboardName(), currentBalance + amount);
 
-											// Registrar en el historial de transacciones con el formato estandarizado
+											// --- DEFENSA 3: Restar el dinero prestado de la tesorería del banco ---
+											bankManager.addTreasury(currentTreasury - amount);
+
+											// Registrar en el historial de transacciones
 											String timeStamp = new java.text.SimpleDateFormat("HH:mm, dd-MM").format(new java.util.Date());
 											TransactionManager managerTrans = TransactionManager.get(level);
 											managerTrans.addTransaction(player.getUUID(), "§7[" + timeStamp + "] §a+$" + amount + " §f(Central Bank Loan)");
 
-											player.sendSystemMessage(Component.literal("§aYou have successfully requested a loan of " + EconomyConfig.formatMoney(amount) + "."));
+											// Registrar la DEUDA TOTAL (monto + interés) y el plazo
+											long threeDaysMillis = System.currentTimeMillis() + (3L * 24L * 60L * 60L * 1000L);
+											bankManager.setLoan(player.getUUID(), totalDebt, threeDaysMillis);
+
+											// Mensajes de confirmación
+											player.sendSystemMessage(Component.literal("§a[Central Bank] Loan approved! You received " + EconomyConfig.formatMoney(amount)));
+											if (interestRate > 0) {
+												player.sendSystemMessage(Component.literal("§eAn interest rate of " + (interestRate * 100) + "% was applied."));
+											}
+											player.sendSystemMessage(Component.literal("§cTotal debt to repay: " + EconomyConfig.formatMoney(totalDebt)));
+
 											return 1;
 										})
 								)

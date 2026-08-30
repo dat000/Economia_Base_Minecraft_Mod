@@ -11,8 +11,12 @@ public class EconomyConfig {
     public static final ForgeConfigSpec.ConfigValue<String> CURRENCY_SUFFIX;
     public static final ForgeConfigSpec.DoubleValue STARTING_BALANCE;
 
-    // --- NUEVO: Configuración de Impuestos ---
+    // --- Configuración de Impuestos ---
     public static final ForgeConfigSpec.DoubleValue TRANSFER_TAX_RATE;
+
+    // --- NUEVO: Configuración de Interés del Banco ---
+    public static final ForgeConfigSpec.DoubleValue LOAN_INTEREST_RATE;
+    public static final ForgeConfigSpec.DoubleValue MAX_LOAN_AMOUNT;
 
     static {
         BUILDER.push("General Settings");
@@ -33,12 +37,26 @@ public class EconomyConfig {
                 .comment("Initial balance upon first login")
                 .defineInRange("startingBalance", 100.0, 0.0, Double.MAX_VALUE);
 
-        // --- NUEVO: Definición del impuesto por transferencia ---
+        // Definición del impuesto por transferencia
         TRANSFER_TAX_RATE = BUILDER
                 .comment("Percentage of tax applied to player-to-player transfers (e.g., 0.05 = 5%, 0.10 = 10%, 0.0 = no tax)")
                 .defineInRange("transferTaxRate", 0.05, 0.0, 1.0);
 
         BUILDER.pop();
+
+        // --- NUEVO: Seccion del Banco Central ---
+        BUILDER.push("Central Bank Settings");
+
+        LOAN_INTEREST_RATE = BUILDER
+                .comment("Interest rate applied to central bank loans (e.g., 0.10 = 10%, 0.0 = 0%)")
+                .defineInRange("loanInterestRate", 0.10, 0.0, 5.0); // 10% por defecto
+
+        MAX_LOAN_AMOUNT = BUILDER
+                .comment("Maximum amount of money a player can request in a single loan")
+                .defineInRange("maxLoanAmount", 5000.0, 1.0, Double.MAX_VALUE);
+
+        BUILDER.pop();
+
         SPEC = BUILDER.build();
     }
 
