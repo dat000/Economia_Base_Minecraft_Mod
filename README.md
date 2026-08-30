@@ -1,7 +1,3 @@
-> **⚠️ Branch Notice (`test4updates`):** This branch serves as a staging area for pre-releases and incremental features. Changes here are tested progressively before being merged into the `main` branch as a complete version update.
-
----
-
 # 💰 Economia Mod
 
 Economia is a lightweight and flexible economy mod for Minecraft that introduces a simple money system for all players. Every player has their own balance, stored as a variable, which can be easily modified through commands. This makes the mod perfect for servers, RPG experiences, or any custom gameplay that requires a basic economy system.

@@ -24,6 +24,15 @@ public class TransferSystemProcedure {
 		if (entity == null)
 			return;
 
+		// Al inicio del metodo execute en TransferSystemProcedure.java:
+		if (entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+			net.mcreator.economia.FrozenAccountsManager manager = net.mcreator.economia.FrozenAccountsManager.get(serverPlayer.serverLevel());
+			if (manager.isFrozen(serverPlayer.getUUID())) {
+				serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cYour account is frozen. You cannot perform transfers."));
+				return; // Detiene el procedimiento
+			}
+		}
+
 		// Validar que no se transfiera 0 o menos
 		double amount = DoubleArgumentType.getDouble(arguments, "moneyWantTransfer");
 		if (amount <= 0) {
